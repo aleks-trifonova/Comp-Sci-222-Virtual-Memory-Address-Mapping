@@ -3,75 +3,73 @@
 
 /* Define page table as dynamic structure containing virtual page and page frame
    and initialize variable as pointer to structure */
-	struct node {
-		int vp =0;
-		int pf = 0;
-	} *pt = NULL;
-	typedef struct node entry;
+struct node {
+    int vp;
+    int pf;
+} *pt = nullptr;
+typedef struct node entry;
 /* Declare global var's */
 
-int  num_entries, page_size, mainmmemory_size, replacement_policy, i, pf, vp, a;
+int num_entries, page_size, mainmmemory_size, replacement_policy, a;
 
 /**************************************************************/
 void set_Parameters() {
 /* Declare local var's */
 
 /* Prompt for main memory size(for page frames), page size, and replacement policy */
-printf("Please enter main memory size: \n");
-scanf("%d", &mainmmemory_size);
+    printf("Please enter main memory size: \n");
+    scanf("%d", &mainmmemory_size);
+    printf("Please enter the page size: \n");
+    scanf("%d", &page_size);
+    printf("Please enter the replacement policy: (1=LRU, 0=FIFO): \n");
+    scanf("%d", &replacement_policy);
 
-printf("Please enter the page size: \n");
-scanf("%d", &page_size);
-
-printf("Please enter the replacement policy: (1=LRU, 0=FIFO): \n");
-scanf("%d", &replacement_policy);
-
-num_entries = mainmmemory_size/page_size;
+    num_entries = mainmmemory_size / page_size;
 /* Allocate and initialize page table based on number of entries */
-    pt = (entry *) malloc (num_entries *sizeof(entry));
-    /* initialize each VP to default value: for - loop*/
-    for(a=0; a < 4; a++){
+    pt = (entry *) malloc(num_entries * sizeof(entry));
+    /* initialize each VP to default value:*/
+    for (a = 0; a < 4; a++) {
         pt[a].vp = -1;
         pt[a].pf = -1;
+    }
 }
-return;
-}
-
 
 
 /***************************************************************/
-void mapping()
-{
+void mapping() {
 /* Declare local var's */
-int virtual_add, real_add, VP, Offset, temporary_VP, temporary_pf;
-int a,b,c;
+    int virtual_add, real_add, vp, Offset, temporary_VP, temporary_pf;
+    int a, b, c;
 /* Prompt for virtual address */
-printf("Please enter the virtual address that you wish to access: \n");
-scanf("%d", &virtual_add);
+    printf("Please enter the virtual address that you wish to access: \n");
+    scanf("%d", &virtual_add);
 
-/* Translate virtual mem addr to virtual page and offset*/
-VP = virtual_add/page_size;
-Offset = virtual_add % page_size; //reference the slides
+/* Translate virtual mem address to virtual page and offset*/
+    vp = virtual_add / page_size;
+    Offset = virtual_add % page_size; //reference the slides
 
-/* Check for end of table, unallocated entry, or matched entry in table
- while none of three cases, keep looping */
+/* In case of end of table, replace either LRU or FIFO entry (top entry in page table), print message */
+
     for (a = 0; num_entries > a; a++) {
         if (pt[a].vp == vp) {
             real_add = (pt[a].pf * page_size) + Offset;
+/* In case of unallocated entry, set entry according to virtual page and page frame, print message */
 
             if (replacement_policy == 0) {
-                int put_pf,put_vp;
-                for (b = a; b < num_entries - 1; b++) {
-                    put_pf = pt[b].pf;
-                    put_vp = pt[b].vp;
-                    pt[b] = pt[b+1];
-                    pt[b+1].pf = put_pf;
-                    pt[b+1].vp = put_vp;
+                int p_pf;
+                for (b = a; num_entries -1 > b; b++) {
+                    p_pf = pt[b].pf;
+                    int p_vp;
+                    p_vp = pt[b].vp;
+                    pt[b] = pt[b + 1];
+                    pt[b + 1].pf = p_pf;
+                    pt[b + 1].vp = p_vp;
                 }
             }
             printf("Virtual Address: %d Maps to Physical Address %d\n", virtual_add, real_add);
             a = num_entries - 1;
         }
+/* In case of hit in page table, calculate physical address and print message, update page table if LRU policy */
 
         else if (pt[a].vp == -1) {
             pt[a].vp = vp;
@@ -79,51 +77,38 @@ Offset = virtual_add % page_size; //reference the slides
             printf("Page Fault!\n");
             a = num_entries - 1;
 
-        }
-
-        else if (a == num_entries - 1) {
+        } else if (a == num_entries - 1) {
             pt[0].vp = vp;
             for (c = 0; c < num_entries - 1; c++) {
                 temporary_pf = pt[c].pf;
                 temporary_VP = pt[c].vp;
-                pt[c] = pt[c+1];
-                pt[c+1].pf = temporary_pf;
-                pt[c+1].vp = temporary_VP;
+                pt[c] = pt[c + 1];
+                pt[c + 1].pf = temporary_pf;
+                pt[c + 1].vp = temporary_VP;
             }
             printf("Page Fault!\n");
         }
     }
-    return;
 
 }
-/* In case of end of table, replace either LRU or FIFO entry (top entry in page table), print message */
-
-/* In case of unallocated entry, set entry according to virtual page and page frame, print message */
-
-/* In case of hit in page table, calculate physical address and print message, update page table if LRU policy */
-
 
 
 /***************************************************************/
-void Table()
-{
+void Table() {
 /* Declare local var's */
-int j;
+    int j;
 /* For each valid entry in page table */
-	/* print virtual page number and corresponding page frame number */
-	printf("============================= \n");
-	printf("       VP ||    PF");
-	printf("===============================\n");
-	for(j = 0; num_entries > j; j++){
-        if(pt[a].pf != -1 && pt[a].vp != -1){
+    /* print virtual page number and corresponding page frame number */
+    printf("\n============================= \n");
+    printf("|       VP ||    PF       |");
+    printf("\n===============================\n");
+    for (j = 0; num_entries > j; j++) {
+        if (pt[a].pf != -1 && pt[a].vp != -1) {
             printf("%d", pt[a].vp);
             printf("%d", pt[a].pf);
-            printf("\n----------------------\n");
         }
-	}
-	return;
+    }
 }
-
 
 
 /**************************************************************/
@@ -169,5 +154,5 @@ int main() {
         }//switch
     }
 
-        return 1;
-    }
+    return 1;
+}
